@@ -8,31 +8,28 @@ from sklearn.metrics import accuracy_score
 from sklearn.ensemble import ExtraTreesClassifier
 
 TRAIN_READY = "X_train_ready.csv"
-TEST_READY  = "X_test_ready.csv"
-FEATS_FILE  = "features.txt"
+TEST_READY = "X_test_ready.csv"
+FEATS_FILE = "features.txt"
 
 N_SPLITS = 10
 SEED = 42
 
 
 train = pd.read_csv(TRAIN_READY)
-test  = pd.read_csv(TEST_READY)
+test = pd.read_csv(TEST_READY)
 feat_cols = Path(FEATS_FILE).read_text(encoding="utf-8").splitlines()
 
 
 for col in ["ROW_ID", "target"]:
     if col not in train.columns:
-        raise ValueError(f"{TRAIN_READY} doit contenir '{col}'.")
+        raise ValueError(f"{TRAIN_READY} must contain '{col}'.")
 if "ROW_ID" not in test.columns:
-    raise ValueError(f"{TEST_READY} doit contenir 'ROW_ID'.")
-
+    raise ValueError(f"{TEST_READY} must contain 'ROW_ID'.")
 
 
 X = train[feat_cols].astype(np.float32).values
 y = (train["target"].astype(float) > 0).astype(int).values
 X_te = test[feat_cols].astype(np.float32).values
-
-
 
 
 model = ExtraTreesClassifier(
@@ -41,13 +38,10 @@ model = ExtraTreesClassifier(
     min_samples_leaf=5,
     max_features="sqrt",
     random_state=SEED,
-    n_jobs=-1
+    n_jobs=-1,
 )
 
-pipe = Pipeline([
-    ("imp", SimpleImputer(strategy="median")),  
-    ("clf", model)
-])
+pipe = Pipeline([("imp", SimpleImputer(strategy="median")), ("clf", model)])
 
 
 kf = StratifiedKFold(n_splits=N_SPLITS, shuffle=True, random_state=SEED)
@@ -68,16 +62,15 @@ pipe.fit(X, y)
 
 
 proba = pipe.predict_proba(X_te)[:, 1]
-yhat  = (proba >= 0.5).astype(int)
+yhat = (proba >= 0.5).astype(int)
 
-submission = pd.DataFrame({
-    "ROW_ID": test["ROW_ID"].values,
-    "target": yhat
-})
+submission = pd.DataFrame({"ROW_ID": test["ROW_ID"].values, "target": yhat})
 
 if len(submission) != 7735:
-    print(f"[Avertissement] submission a {len(submission)} lignes ≠ 7735 attendues.")
+    print(f"[Warning] submission has {len(submission)} rows; expected 7735.")
 
 submission.to_csv("submission.csv", index=False)
-print(f"[OK] submission.csv écrit — shape={submission.shape} | "
-      f"positifs={submission['target'].sum()} ({submission['target'].mean():.2%})")
+print(
+    f"[OK] submission.csv saved — shape={submission.shape} | "
+    f"positive_predictions={submission['target'].sum()} ({submission['target'].mean():.2%})"
+)

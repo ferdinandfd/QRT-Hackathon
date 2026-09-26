@@ -1,4 +1,3 @@
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -6,7 +5,7 @@ import numpy as np
 
 
 X_train = pd.read_csv("X_train_ready.csv")
-X_test  = pd.read_csv("X_test_ready.csv")
+X_test = pd.read_csv("X_test_ready.csv")
 
 
 non_feats = {"ROW_ID", "target"}
@@ -26,4 +25,4 @@ for feat in features:
     plt.savefig(f"distrib_{feat}.png")
     plt.close()
 
-print("[OK] Distributions sauvegardées (format: distrib_<feature>.png)")
+print("[OK] Distribution plots saved (format: distrib_<feature>.png)")
